@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GST Practice Portal — Learning & Simulation System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============================================================
+     LOGIN SCREEN
+     ============================================================ -->
+<div id="loginScreen" class="auth-screen">
+  <div class="auth-container">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">GST</div>
+      <div>
+        <div class="auth-logo-title">GST Practice Portal</div>
+        <div class="auth-logo-sub">Learning & Simulation System · For Educational Use Only</div>
+      </div>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+    </div>
+
+    <!-- Login Form -->
+    <div id="loginForm" class="auth-form-panel">
+      <div class="form-group">
+        <label class="form-label">Username or Email</label>
+        <input type="text" id="loginUsername" class="form-control" placeholder="Enter username or email" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" id="loginPassword" class="form-control" placeholder="Enter password" autocomplete="current-password">
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;justify-content:space-between;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" id="rememberMe"> Remember me
+        </label>
+        <span class="link-text" onclick="showForgotPassword()">Forgot password?</span>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="handleLogin()">
+        <span>Sign In</span>
+        <i class="icon">→</i>
+      </button>
+      <div id="loginError" class="form-error" style="display:none;"></div>
+    </div>
+
+    <!-- Register Form -->
+    <div id="registerForm" class="auth-form-panel" style="display:none;">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">First Name *</label>
+          <input type="text" id="regFirstName" class="form-control" placeholder="First name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name *</label>
+          <input type="text" id="regLastName" class="form-control" placeholder="Last name">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address *</label>
+        <input type="email" id="regEmail" class="form-control" placeholder="your@email.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Username *</label>
+        <input type="text" id="regUsername" class="form-control" placeholder="Choose a username">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Password *</label>
+          <input type="password" id="regPassword" class="form-control" placeholder="Min 8 characters">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm Password *</label>
+          <input type="password" id="regConfirmPassword" class="form-control" placeholder="Repeat password">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Role</label>
+        <select id="regRole" class="form-control form-select">
+          <option value="user">Learner / Practitioner</option>
+          <option value="admin">Administrator</option>
+        </select>
+      </div>
+      <div id="adminCodeGroup" class="form-group" style="display:none;">
+        <label class="form-label">Admin Access Code *</label>
+        <input type="password" id="regAdminCode" class="form-control" placeholder="Enter admin access code">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="handleRegister()">Create Account</button>
+      <div id="registerError" class="form-error" style="display:none;"></div>
+      <div id="registerSuccess" class="form-success" style="display:none;"></div>
+    </div>
+
+    <div class="auth-notice">
+      <strong>⚠ Practice Portal Only</strong> — No real GST data. Not affiliated with GSTN or Government of India.
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MAIN APP SHELL
+     ============================================================ -->
+<div id="appShell" style="display:none;">
+
+  <!-- TOP HEADER -->
+  <header class="app-header">
+    <div class="header-left">
+      <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="header-brand">
+        <div class="brand-icon">GST</div>
+        <div>
+          <div class="brand-name">GST Practice Portal</div>
+          <div class="brand-sub">Simulation & Learning System</div>
+        </div>
+      </div>
+    </div>
+    <div class="header-center">
+      <div class="period-selector">
+        <label>Return Period:</label>
+        <select id="globalPeriod" class="period-select" onchange="onPeriodChange()">
+          <option value="">— Select Period —</option>
+        </select>
+        <button class="btn btn-sm btn-outline" onclick="showModal('periodModal')">Manage</button>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="notice-badge practice-mode">PRACTICE MODE</div>
+      <div class="user-menu" onclick="toggleUserMenu()">
+        <div class="user-avatar" id="headerAvatar">U</div>
+        <div class="user-info">
+          <span id="headerUserName">User</span>
+          <span id="headerUserRole" class="role-tag">Learner</span>
+        </div>
+        <span class="dropdown-arrow">▾</span>
+      </div>
+      <div class="user-dropdown" id="userDropdown" style="display:none;">
+        <div class="dropdown-item" onclick="showPage('profile')"><span>👤</span> My Profile</div>
+        <div class="dropdown-item" onclick="showPage('settings')"><span>⚙</span> Settings</div>
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-item danger" onclick="handleLogout()"><span>🚪</span> Sign Out</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- SIDEBAR + CONTENT WRAPPER -->
+  <div class="app-body">
+
+    <!-- SIDEBAR NAVIGATION -->
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-inner">
+
+        <!-- GSTIN Display -->
+        <div class="sidebar-gstin" id="sidebarGSTIN">
+          <div class="gstin-prompt" onclick="showPage('taxpayer')">
+            <span class="gstin-icon">🏢</span>
+            <div>
+              <div class="gstin-title">Setup Taxpayer Profile</div>
+              <div class="gstin-sub">Click to configure GSTIN</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NAV SECTIONS -->
+        <div class="nav-section">
+          <div class="nav-section-label">Overview</div>
+          <div class="nav-item" data-page="dashboard" onclick="showPage('dashboard',this)">
+            <span class="nav-icon">📊</span> Dashboard
+          </div>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-label">Setup</div>
+          <div class="nav-item" data-page="taxpayer" onclick="showPage('taxpayer',this)">
+            <span class="nav-icon">🏢</span> Taxpayer Profile
+          </div>
+          <div class="nav-item" data-page="gstin-mgmt" onclick="showPage('gstin-mgmt',this)">
+            <span class="nav-icon">🔑</span> GSTIN Management
+          </div>
+          <div class="nav-item" data-page="customers" onclick="showPage('customers',this)">
+            <span class="nav-icon">👥</span> Customer Master
+          </div>
+          <div class="nav-item" data-page="vendors" onclick="showPage('vendors',this)">
+            <span class="nav-icon">🏭</span> Vendor Master
+          </div>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-label">Transactions</div>
+          <div class="nav-item" data-page="sales-invoice" onclick="showPage('sales-invoice',this)">
+            <span class="nav-icon">🧾</span> Sales Invoices
+          </div>
+          <div class="nav-item" data-page="purchase-invoice" onclick="showPage('purchase-invoice',this)">
+            <span class="nav-icon">📦</span> Purchase Invoices
+          </div>
+          <div class="nav-item" data-page="credit-debit-notes" onclick="showPage('credit-debit-notes',this)">
+            <span class="nav-icon">↔</span> Credit/Debit Notes
+          </div>
+          <div class="nav-item" data-page="eway-bill" onclick="showPage('eway-bill',this)">
+            <span class="nav-icon">🚛</span> E-Way Bill Practice
+          </div>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-label">GST Returns</div>
+          <div class="nav-item" data-page="gstr1" onclick="showPage('gstr1',this)">
+            <span class="nav-icon">📋</span> GSTR-1
+            <span class="nav-badge" id="badge-gstr1" style="display:none;"></span>
+          </div>
+          <div class="nav-item" data-page="gstr3b" onclick="showPage('gstr3b',this)">
+            <span class="nav-icon">📝</span> GSTR-3B
+          </div>
+          <div class="nav-item" data-page="gstr2a" onclick="showPage('gstr2a',this)">
+            <span class="nav-icon">👁</span> GSTR-2A View
+          </div>
+          <div class="nav-item" data-page="gstr2b" onclick="showPage('gstr2b',this)">
+            <span class="nav-icon">✅</span> GSTR-2B View
+          </div>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-label">Reconciliation</div>
+          <div class="nav-item" data-page="reconciliation" onclick="showPage('reconciliation',this)">
+            <span class="nav-icon">🔄</span> Reconciliation
+            <span class="nav-badge danger" id="badge-recon" style="display:none;"></span>
+          </div>
+          <div class="nav-item" data-page="itc-matching" onclick="showPage('itc-matching',this)">
+            <span class="nav-icon">🧮</span> ITC Matching
+          </div>
+          <div class="nav-item" data-page="tax-liability" onclick="showPage('tax-liability',this)">
+            <span class="nav-icon">💰</span> Tax Liability
+          </div>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-label">Filing</div>
+          <div class="nav-item" data-page="filing-simulation" onclick="showPage('filing-simulation',this)">
+            <span class="nav-icon">📤</span> Filing Simulation
+          </div>
+          <div class="nav-item" data-page="filing-history" onclick="showPage('filing-history',this)">
+            <span class="nav-icon">📁</span> Filing History
+          </div>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-label">Reports</div>
+          <div class="nav-item" data-page="reports" onclick="showPage('reports',this)">
+            <span class="nav-icon">📈</span> Reports & Analytics
+          </div>
+        </div>
+
+        <!-- Admin section (conditionally shown) -->
+        <div class="nav-section" id="adminSection" style="display:none;">
+          <div class="nav-section-label">Administration</div>
+          <div class="nav-item" data-page="admin" onclick="showPage('admin',this)">
+            <span class="nav-icon">🛡</span> Admin Panel
+          </div>
+        </div>
+
+      </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content" id="mainContent">
+      <!-- Pages are injected here dynamically -->
+      <div id="pageContainer"></div>
+    </main>
+
+  </div><!-- end app-body -->
+</div><!-- end appShell -->
+
+<!-- ============================================================
+     GLOBAL MODALS
+     ============================================================ -->
+
+<!-- Period Modal -->
+<div class="modal-overlay" id="periodModal" style="display:none;" onclick="closeModalOutside(event,'periodModal')">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h3>Manage Return Periods</h3>
+      <button class="modal-close" onclick="closeModal('periodModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Month</label>
+          <select id="newPeriodMonth" class="form-control form-select">
+            <option value="01">January</option><option value="02">February</option>
+            <option value="03">March</option><option value="04">April</option>
+            <option value="05">May</option><option value="06">June</option>
+            <option value="07">July</option><option value="08">August</option>
+            <option value="09">September</option><option value="10">October</option>
+            <option value="11">November</option><option value="12">December</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Year</label>
+          <select id="newPeriodYear" class="form-control form-select" onchange="">
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addPeriod()">Add Period</button>
+      <div style="margin-top:16px;">
+        <div class="form-label">Existing Periods</div>
+        <div id="periodList" class="period-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Generic Confirm Modal -->
+<div class="modal-overlay" id="confirmModal" style="display:none;">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <h3 id="confirmTitle">Confirm Action</h3>
+      <button class="modal-close" onclick="closeModal('confirmModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirmMessage"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('confirmModal')">Cancel</button>
+      <button class="btn btn-danger" id="confirmBtn" onclick="">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="toast-container"></div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay" style="display:none;">
+  <div class="loading-spinner">
+    <div class="spinner"></div>
+    <div id="loadingText" class="loading-text">Loading...</div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/pages.js"></script>
+<script src="js/calculations.js"></script>
+<script src="js/reconciliation.js"></script>
+<script src="js/reports.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
